@@ -1,6 +1,6 @@
 # Helix
 
-DNA is a very sensitive and personal information. I think that DNA sequencing, storage,
+DNA is a very sensitive and personal information. I believe that DNA sequencing, storage,
 and distribution should be completely anonymous.
 
 Helix is an attempt to create a blockchain to store and retrieve DNA anonymously.
