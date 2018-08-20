@@ -8,7 +8,6 @@
 
 
 extern crate sha2;
-extern crate serde;
 extern crate serde_json;
 extern crate regex;
 extern crate hex;
@@ -21,10 +20,10 @@ use data_encoding::HEXUPPER;
 use std::io;
 use std::process;
 use std::io::Write;
-use sha2::{Digest, Sha512};
+use sha2::{Digest};
 use std::str;
 use regex::Regex;
-use serde_json::Error;
+
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct Block {
@@ -40,7 +39,7 @@ struct Txn {
 #[derive(Clone)]
 struct Chain {
     blockchain: Vec<Block>,
-    pendingTxns: Vec<Txn>,
+    pending_txns: Vec<Txn>,
 }
 
 impl Chain {
@@ -55,7 +54,7 @@ impl Chain {
                 id,
                 dna_hash,
         };
-        self.pendingTxns.push(txn);
+        self.pending_txns.push(txn);
     }
 }
 
@@ -63,50 +62,50 @@ impl Chain {
 /// as an input and mines the first pending
 /// transcation
 fn mine_option(chain: &mut Chain) {
-    if (chain.pendingTxns.len() as i32) < 1{
+    if (chain.pending_txns.len() as i32) < 1{
         println!("Currently there are no pending transcations available to mine.");
         process::exit(0);
     }
 
     if(chain.blockchain.len() as i32) < 1 {
-        let mut dna_hash = chain.pendingTxns[0].dna_hash.clone();
-        let mut p_block = "0000000000";
-        let mut p_hash_buff = sha2::Sha256::digest(p_block.to_string().as_bytes());
-        let mut p_hash = HEXUPPER.encode(p_hash_buff.as_ref());
-        let mut id = chain.pendingTxns[0].id.clone();
+        let dna_hash = chain.pending_txns[0].dna_hash.clone();
+        let p_block = "0000000000";
+        let p_hash_buff = sha2::Sha256::digest(p_block.to_string().as_bytes());
+        let p_hash = HEXUPPER.encode(p_hash_buff.as_ref());
+        let id = chain.pending_txns[0].id.clone();
 
-        let mut block = Block{
+        let block = Block{
             p_hash,
             id,
             dna_hash,
         };
         chain.blockchain.push(block);
-        chain.pendingTxns.remove(0);
+        chain.pending_txns.remove(0);
         println!("Block has been mined successfully");
         println!("{:?}", chain.blockchain);
         process::exit(0);
     }else{
-        let mut dna_hash = chain.pendingTxns[0].dna_hash.clone();
+        let dna_hash = chain.pending_txns[0].dna_hash.clone();
         for block in &chain.blockchain {
             if dna_hash == block.dna_hash {
-                chain.pendingTxns.remove(0);
+                chain.pending_txns.remove(0);
                 println!("You are trying to upload DNA which already exits on the blockchain");
                 process::exit(0);
             }
         }
-        let mut blockchain = chain.blockchain.clone();
+        let blockchain = chain.blockchain.clone();
         let p_block = blockchain.last();
         let p_block_json = serde_json::to_string(&p_block).unwrap();
         let p_block_hash_buff = sha2::Sha256::digest(p_block_json.as_bytes());
-        let mut p_hash = HEXUPPER.encode(p_block_hash_buff.as_ref());
-        let mut id = chain.pendingTxns[0].id.clone();
-        let mut block = Block{
+        let p_hash = HEXUPPER.encode(p_block_hash_buff.as_ref());
+        let id = chain.pending_txns[0].id.clone();
+        let block = Block{
             p_hash,
             id,
             dna_hash,
         };
         chain.blockchain.push(block);
-        chain.pendingTxns.remove(0);
+        chain.pending_txns.remove(0);
         println!("Block has been mined successfully");
         println!("{:?}", chain.blockchain);
         process::exit(0);
@@ -121,7 +120,7 @@ fn upload_option(chain: &mut Chain) {
     let mut dna = String::new();
     let mut uid = String::new();
     print!("Please enter the DNA seq: ");
-    io::stdout().flush();
+    io::stdout().flush().expect("Flushing failed");
     io::stdin().read_line(&mut dna).expect("Failed To read Input");
     if Regex::new(r"[^ACTGactg]").unwrap().is_match(&dna.trim()){
         println!("You entered an invalid DNA");
@@ -129,7 +128,7 @@ fn upload_option(chain: &mut Chain) {
     }
 
     print!("Please enter your UID: ");
-    io::stdout().flush();
+    io::stdout().flush().expect("Flushing failed");
     io::stdin().read_line(&mut uid).expect("Failed To read Input");
 
     chain.add_dna(dna, uid);
@@ -139,12 +138,12 @@ fn upload_option(chain: &mut Chain) {
 fn main() {
 
     let mut user_response = String::new();
-    let mut blockchain = Vec::new();
-    let mut pendingTxns = Vec::new();
+    let blockchain = Vec::new();
+    let pending_txns = Vec::new();
 
     let mut chain = Chain{
         blockchain,
-        pendingTxns,
+        pending_txns,
     };
 
     println!("Welcome to helix!");
@@ -153,7 +152,7 @@ fn main() {
 
         loop{
             print!("Would you like to upload DNA? ");
-            io::stdout().flush();
+            io::stdout().flush().expect("Flushing failed");
             user_response.clear();
             io::stdin().read_line(&mut user_response).expect("Failed To read Input");
             match user_response.to_lowercase().trim() {
@@ -165,7 +164,7 @@ fn main() {
 
         loop{
             print!("Would you like to mine a block? ");
-            io::stdout().flush();
+            io::stdout().flush().expect("Flushing failed");
             user_response.clear();
             io::stdin().read_line(&mut user_response).expect("Failed To read Input");
             match user_response.to_lowercase().trim() {
@@ -176,7 +175,7 @@ fn main() {
         }
 
         print!("Would you like to exit? ");
-        io::stdout().flush();
+        io::stdout().flush().expect("Flushing failed");
         user_response.clear();
         io::stdin().read_line(&mut user_response).expect("Failed To read Input");
         match user_response.to_lowercase().trim() {
