@@ -6,6 +6,7 @@
 //!  a the blockchain
 //!
 
+mod compression;
 
 extern crate sha2;
 extern crate serde_json;
