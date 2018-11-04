@@ -1,15 +1,13 @@
+//! # Perceptual hash and distance module
+//! Perceptual hashing is used to identify similar strings in a concise and fast way.
+//! This is part of an algorithm laid out in: https://arxiv.org/ftp/arxiv/papers/1412/1412.5517.pdf
+//! where image compression algorithms were altered to represent DNA strings.
+//!
 
-/*
- * 11/3 Nicholas Grout
- *
- * Perceptual hash - which is used to identify similar strings
- *
- * Distance - Hamming distance algorithm for computing the difference in strings
- */
 
-/*
-Compute the distance between two bytes
-*/
+
+/// Compute the distance between two bytes using the hamming distance algorithm
+///
 #[allow(dead_code)]
 fn byte_distance(b1 : u8, b2 : u8) -> u8 {
     let mut mask : u8 = 0x01;
@@ -28,15 +26,34 @@ fn byte_distance(b1 : u8, b2 : u8) -> u8 {
     distance
 }
 
-/*
- * Compute the hamming distance: the number of bit flips it takes for one string to match the other
- */
+
+/// Compute the hamming distance: the number of bit flips it takes for one string to match the other
+/// # Example
+/// ```
+/// /*
+///  * The distance between these two can be calculated by the number of bit flips.
+///  * Since they're the same value until the last digit we just have to look at the last 1/2 byte
+///  * 
+///  * s1: 0001
+///  * s2: 1001
+///  * 
+///  * In order to get s2 == s1, we need to do one bit flip.
+///  * 
+///  */
+/// let s1 = "AAAA";  // 0x41414141
+/// let s2 = "AAAI";  // 0x41414149
+/// 
+/// let d = distance(s1.as_bytes(), s2.as_bytes()); // 1
+/// ```
+///
 #[allow(dead_code)]
 pub fn distance(bytes1 : &[u8], bytes2 : &[u8]) -> u64 {
 
     // In order to compute Hamming Distance, each byte string must be same length 
     // (otherwise distance is infinite)
-    assert_eq!(bytes1.len(), bytes2.len());
+    if (bytes1.len() != bytes2.len()) {
+        panic!("strings are not the same length");
+    }
     let mut total_distance : u64 = 0;
 
     for i in 0..bytes1.len() {
@@ -46,11 +63,18 @@ pub fn distance(bytes1 : &[u8], bytes2 : &[u8]) -> u64 {
     total_distance
 }
 
-/*
- * Calculate the distance between two strings of 256 bits (u64).
- * Returns the number of bits which need to be flipped in order for
- * one string to match the other.
- */
+/// Calculate the distance between two strings of 256 bits (u64).
+/// Returns the number of bits which need to be flipped in order for
+/// one string to match the other.
+///
+/// # Example
+/// ```
+/// let val1 :u64 = 0x0F;
+/// let val2 :u64 = 0x08;
+///
+/// let d = distance_u64(val1, val2); // 3
+///
+/// ```
 #[allow(dead_code)]
 pub fn distance_u64(b1: u64, b2: u64) -> u8 {
     let mut mask : u64 = 0x01;
@@ -71,12 +95,11 @@ pub fn distance_u64(b1: u64, b2: u64) -> u8 {
 
 
 
-/*
- * Perceptual hash function. Takes a string of bytes as an argument
- * and returns a 256 bit value based on that string. Similar strings
- * SHOULD produce similar hashes. This is the underlying principle
- * of perceptual hashes.
- */
+/// Perceptual hash function. Takes a string of bytes as an argument
+/// and returns a 256 bit value based on that string. Similar strings
+/// SHOULD produce similar hashes. This is the underlying principle
+/// of perceptual hashes.
+
 #[allow(dead_code)]
 pub fn hash(string : &[u8]) -> u64 {
     let mut hvalue : u64 = 0xAAAAAAAA;

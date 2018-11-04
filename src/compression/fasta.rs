@@ -1,16 +1,10 @@
-//! # Fasta Implementation
 //! `FASTA` is a widely used format for storing DNA. 
 //! It maps nucleic acids or amino acids to codes to 
 //! reduce the storage size.
 //! See [BLAST's documentation](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=BlastHelp)
 //!
-//!
-//!
-//!
-//!
-//!
+
 #![allow(dead_code)]
-extern crate rand;
 
 // TODO: uncomment after TryFrom is stable.
 // See issue: https://github.com/rust-lang/rust/issues/33417
@@ -39,8 +33,8 @@ impl Fasta {
      /// let valid_seq = String::from("ACGCKZ").into_bytes();
      /// 
      /// let fasta_seq = Fasta::new();
-     /// fasta_seq.set_seq(invalid_seq); // returns false
-     /// fasta_seq.set_seq(valid_seq);   // returns true
+     /// assert_eq!(fasta_seq.set_seq(invalid_seq), false); // returns false
+     /// assert_eq!(fasta_seq.set_seq(valid_seq), true);    // returns true
      ///
      /// ```
     ///
