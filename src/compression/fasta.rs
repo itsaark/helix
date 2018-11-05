@@ -5,6 +5,8 @@
 //!
 
 #![allow(dead_code)]
+use super::perceptual;
+extern crate rand;
 
 // TODO: uncomment after TryFrom is stable.
 // See issue: https://github.com/rust-lang/rust/issues/33417
@@ -15,6 +17,7 @@
 pub struct Fasta {
     definition: String,
     seq: Vec<u8>,
+    hash: u64,
 }
 
 impl Fasta {
@@ -22,7 +25,16 @@ impl Fasta {
         Self {
             definition: String::new(),
             seq: Vec::new(),
+            hash: 0
         }
+    }
+
+    pub fn get_hash(&self) -> u64 {
+        return self.hash;
+    }
+
+    pub fn distance_to(&self, lhs: &Fasta) -> u8 {
+        perceptual::distance_u64(self.hash, lhs.hash)
     }
 
     /// Returns true if the sequence is valid and was updated
@@ -41,6 +53,7 @@ impl Fasta {
     pub fn set_seq(&mut self, new_seq : Vec<u8>) -> bool {
         if Fasta::valid_seq(&new_seq) {
             self.seq = new_seq;
+            self.hash = perceptual::hash(self.seq.as_slice());
             return true;
         }
         false
@@ -78,7 +91,7 @@ impl Fasta {
      ///
      /// ```
      ///
-    fn valid_seq(to_test : &Vec<u8>) -> bool {
+    fn valid_seq(to_test : &[u8]) -> bool {
         for c in to_test {
             let mut lowercase_c :u8 = *c;
             if lowercase_c >= b'a' {
@@ -149,20 +162,28 @@ impl TryFrom<Vec<u8>> for Fasta {
 mod tests {
     use super::*;
 
-    #[test]
-    fn fasta_valid_functional() {
+    fn generate_sequence(len: usize) -> Vec<u8> {
         let valid_codes = [b'A', b'C', b'G', b'T', b'N', b'U', b'K', b'S', 
                            b'Y', b'M', b'W', b'R', b'B', b'D', b'H', b'V', b'-'];
         let mut seq: Vec<u8> = Vec::new();
         loop {
             let index :usize = rand::random();
             seq.push(valid_codes[index % valid_codes.len()]);
-            if seq.len() >= 1000 {
+
+            if seq.len() >= len {
                 break;
             }
         }
-        // test a valid
+
+        seq
+    }
+
+    #[test]
+    fn valid_functional() {
+        let mut seq = tests::generate_sequence(1000);
         let mut fasta_seq = Fasta::new();
+
+        // test a valid
         assert_eq!(fasta_seq.set_seq(seq.clone()),true);
 
         // test a valid string with lowercase code
@@ -172,6 +193,43 @@ mod tests {
         // test an invalid code
         seq.push(b'z');
         assert_eq!(fasta_seq.set_seq(seq.clone()),false);
+    }
+
+    #[test]
+    pub fn distance_to() {
+        // Generate a regular test sequence
+        let mut test_seq = tests::generate_sequence(100);
+
+        let f1 = Fasta {
+            definition: String::new(),
+            seq: test_seq.clone(),
+            hash: perceptual::hash(test_seq.as_slice()),
+        };
+
+        // Change some of the values
+        let len = test_seq.len();
+        for i in 0..10 {
+            let index : usize = rand::random();
+            test_seq[index % len] = b'A';
+        }
+
+        let f2 = Fasta {
+            definition: String::new(),
+            seq: test_seq.clone(),
+            hash: perceptual::hash(test_seq.as_slice()),
+        };
+
+        let d = f1.distance_to(&f2);
+
+        // TODO finish test distance here
+        /*
+        let f1_str = String::from(f1.seq.as_slice());
+        println!("distance between two sequences: \n\t{}\n\t{}\n\t{}", 
+            String::from(f1.seq.iter().collect()), 
+            String::from(f2.seq.iter().collect()),
+            d);
+        */
+
     }
 
 }

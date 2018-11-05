@@ -4,8 +4,6 @@
 //! where image compression algorithms were altered to represent DNA strings.
 //!
 
-
-
 /// Compute the distance between two bytes using the hamming distance algorithm
 ///
 #[allow(dead_code)]
@@ -45,13 +43,16 @@ fn byte_distance(b1 : u8, b2 : u8) -> u8 {
 /// 
 /// let d = distance(s1.as_bytes(), s2.as_bytes()); // 1
 /// ```
+/// 
+/// # Panic
+/// The function panics if the two strings are not the same length
 ///
 #[allow(dead_code)]
 pub fn distance(bytes1 : &[u8], bytes2 : &[u8]) -> u64 {
 
     // In order to compute Hamming Distance, each byte string must be same length 
     // (otherwise distance is infinite)
-    if (bytes1.len() != bytes2.len()) {
+    if bytes1.len() != bytes2.len() {
         panic!("strings are not the same length");
     }
     let mut total_distance : u64 = 0;
@@ -104,12 +105,11 @@ pub fn distance_u64(b1: u64, b2: u64) -> u8 {
 pub fn hash(string : &[u8]) -> u64 {
     let mut hvalue : u64 = 0xAAAAAAAA;
 
-    for i in 0..string.len() {
-        let mut mask = u64::from(string[i]);
+    for byte in string {
+        let mut mask = u64::from(*byte);
         hvalue ^= mask;
         hvalue += mask;
         hvalue <<= 8;
-
     }
 
     hvalue
